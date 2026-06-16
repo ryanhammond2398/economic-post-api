@@ -27,33 +27,26 @@ app.get('/generate-post', async (req, res) => {
         tools: [{ type: 'web_search_20250305', name: 'web_search' }],
         messages: [{
           role: 'user',
-          content: `Search the web for the most important US economic news from today.
-
-Then write a short Facebook post about it. Follow these rules strictly:
-
-- Write like a real person sharing news they find interesting, not like a news anchor or AI
-- Use plain conversational language that everyday people understand
-- 3 short paragraphs, under 150 words total
-- Include real numbers and facts from today's news
-- No intro phrases like "here is" or "today we look at"
-- No cliches like "all eyes are on" or "markets are watching"
-- No markdown, no bold, no bullet points, no dashes, no dividers
-- No hype words like "stunning" or "shocking"
-- Add 1-2 relevant emojis naturally
-- Start your response with the very first word of the post itself, nothing before it`
+          content: `Search the web for the most important US economic news from today. Then write a short Facebook post about it. Write like a real person sharing news they find interesting, not like a news anchor or AI. Use plain conversational language that everyday people understand. 3 short paragraphs, under 150 words total. Include real numbers and facts from today's news. No intro phrases. No cliches. No markdown, no bold, no bullet points, no dashes, no dividers. No hype words. Add 1-2 relevant emojis naturally. Start your response with the very first word of the post itself, nothing before it.`
         }]
       })
     });
 
     const data = await response.json();
-
     const textBlocks = data.content.filter(block => block.type === 'text' && block.text && block.text.trim().length > 50);
     
     if (textBlocks.length === 0) {
       return res.status(500).json({ error: 'No text content returned from Claude' });
     }
 
-    const postText = textBlocks[textBlocks.length - 1].text.trim();
+    let postText = textBlocks[textBlocks.length - 1].text.trim();
+
+    // Strip any intro lines Claude adds before the actual post
+    postText = postText.replace(/^[\s\S]*?---\s*/m, '').trim();
+    postText = postText.replace(/^here is the facebook post[:\s-]*/i, '').trim();
+    postText = postText.replace(/^here'?s the (facebook )?post[:\s-]*/i, '').trim();
+    postText = postText.replace(/^---+\s*/m, '').trim();
+    postText = postText.replace(/^[\w\s,]+:\s*\n---\s*/m, '').trim();
 
     res.setHeader('Content-Type', 'text/plain');
     res.send(postText);
