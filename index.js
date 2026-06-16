@@ -41,12 +41,8 @@ app.get('/generate-post', async (req, res) => {
 
     let postText = textBlocks[textBlocks.length - 1].text.trim();
 
-    // Strip any intro lines Claude adds before the actual post
-    postText = postText.replace(/^[\s\S]*?---\s*/m, '').trim();
-    postText = postText.replace(/^here is the facebook post[:\s-]*/i, '').trim();
-    postText = postText.replace(/^here'?s the (facebook )?post[:\s-]*/i, '').trim();
-    postText = postText.replace(/^---+\s*/m, '').trim();
-    postText = postText.replace(/^[\w\s,]+:\s*\n---\s*/m, '').trim();
+    // Only remove intro line and dashes if present, leave post content untouched
+    postText = postText.replace(/^(.*?here is the facebook post.*?\n[-]*\n)/is, '').trim();
 
     res.setHeader('Content-Type', 'text/plain');
     res.send(postText);
