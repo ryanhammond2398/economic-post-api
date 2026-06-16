@@ -27,24 +27,34 @@ app.get('/generate-post', async (req, res) => {
         tools: [{ type: 'web_search_20250305', name: 'web_search' }],
         messages: [{
           role: 'user',
-          content: 'Search the web for the most important US economic news from today. Then write a Facebook post under 150 words as 3 short paragraphs. Plain text only. No intro. No markdown. No bold. No bullet points. No cliches. Add 1-2 emojis naturally in the text. Output ONLY the post text, nothing else.'
+          content: `Search the web for the most important US economic news from today.
+
+Then write a short Facebook post about it. Follow these rules strictly:
+
+- Write like a real person sharing news they find interesting, not like a news anchor or AI
+- Use plain conversational language that everyday people understand
+- 3 short paragraphs, under 150 words total
+- Include real numbers and facts from today's news
+- No intro phrases like "here is" or "today we look at"
+- No cliches like "all eyes are on" or "markets are watching"
+- No markdown, no bold, no bullet points, no dashes, no dividers
+- No hype words like "stunning" or "shocking"
+- Add 1-2 relevant emojis naturally
+- Start your response with the very first word of the post itself, nothing before it`
         }]
       })
     });
 
     const data = await response.json();
 
-    // Extract only text blocks and find the last one (the actual post)
     const textBlocks = data.content.filter(block => block.type === 'text' && block.text && block.text.trim().length > 50);
     
     if (textBlocks.length === 0) {
       return res.status(500).json({ error: 'No text content returned from Claude' });
     }
 
-    // Get the last text block which is always the final post
     const postText = textBlocks[textBlocks.length - 1].text.trim();
 
-    // Return as plain text so Make.com can use it directly
     res.setHeader('Content-Type', 'text/plain');
     res.send(postText);
 
